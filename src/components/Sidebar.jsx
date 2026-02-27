@@ -15,12 +15,12 @@ export default function Sidebar() {
       <nav className="flex-1">
         <ul className="space-y-2">
           <li className="px-3 py-2 rounded-md hover:bg-white/5">
-            <Link to="/" className="flex items-center gap-3 text-sm font-semibold">
+            <Link to="/dashboard" className="flex items-center gap-3 text-sm font-semibold">
               <span className="text-xl">🏠</span> Dashboard
             </Link>
           </li>
           <li className="px-3 py-2 rounded-md bg-white/6">
-            <Link to="/" className="flex items-center gap-3 text-sm font-semibold">
+            <Link to="/product-table" className="flex items-center gap-3 text-sm font-semibold">
               <span className="text-xl">📦</span> Inventory
             </Link>
           </li>

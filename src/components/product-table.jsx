@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DashboardCards from "./DashboardCards";
 
 function ProductTable({ products, onDelete, onEdit, filterCategory, setFilterCategory, allProducts }) {
   const [sortBy, setSortBy] = useState("name");
@@ -59,6 +60,11 @@ function ProductTable({ products, onDelete, onEdit, filterCategory, setFilterCat
 
   return (
     <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-blue-50 rounded-3xl p-8 min-h-screen">
+      {/* Dashboard Cards */}
+      <div className="mb-10">
+        <DashboardCards products={allProducts} />
+      </div>
+      
       {/* Header Section */}
       <div className="flex justify-between items-center mb-10 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
         <div>
@@ -142,99 +148,108 @@ function ProductTable({ products, onDelete, onEdit, filterCategory, setFilterCat
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedProducts.map((p) => (
-            <div
-              key={p.id}
-              className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden transform hover:scale-105 hover:-translate-y-1"
-            >
-              {/* Card Header - Enhanced */}
-              <div className="relative bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 px-6 py-5 overflow-hidden">
-                {/* Decorative background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full blur-3xl"></div>
-                  <div className="absolute bottom-0 right-0 w-40 h-40 bg-white rounded-full blur-3xl"></div>
-                </div>
-                
-                <div className="relative z-10 flex justify-between items-start gap-3">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl shadow-lg border border-white/30 group-hover:scale-110 transition-transform duration-300">
-                      {p.icon || '🥛'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white text-lg truncate drop-shadow-md">{p.name}</h3>
-                      <p className="text-xs text-blue-100 opacity-90">{p.category || "Uncategorized"}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {sortedProducts.map((p) => {
+            const today = new Date();
+            const expiry = p.expiry ? new Date(p.expiry) : null;
+            const daysUntilExpiry = expiry ? Math.ceil((expiry - today) / (1000 * 60 * 60 * 24)) : null;
+            
+            let badgeColor = "bg-green-500";
+            let badgeText = "In Stock";
+            
+            if (expiry && daysUntilExpiry < 0) {
+              badgeColor = "bg-red-500";
+              badgeText = "Expired";
+            } else if (expiry && daysUntilExpiry <= 7) {
+              badgeColor = "bg-orange-500";
+              badgeText = "Expiring";
+            } else if (p.quantity === 0) {
+              badgeColor = "bg-red-500";
+              badgeText = "Out";
+            } else if (p.quantity < 5) {
+              badgeColor = "bg-yellow-500";
+              badgeText = "Low";
+            }
 
-              {/* Card Body - Enhanced */}
-              <div className="p-6 space-y-5">
-                {/* Price and Status Row */}
-                <div className="flex justify-between items-end gap-3">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-2 opacity-70">💰 Price</p>
-                    <p className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            return (
+              <div
+                key={p.id}
+                className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col h-full group hover:border-blue-300"
+              >
+                {/* Product Image Area */}
+                <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 h-32 flex items-center justify-center overflow-hidden border-b border-gray-100">
+                  <div className="text-6xl group-hover:scale-125 transition-transform duration-300 drop-shadow-md">
+                    {p.icon || '🥛'}
+                  </div>
+                  
+                  {/* Badge */}
+                  <div className={`absolute top-2 left-2 ${badgeColor} text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md`}>
+                    {badgeText}
+                  </div>
+
+                  {/* Wishlist Heart */}
+                  <button className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm rounded-full p-1.5 shadow-md hover:bg-white hover:scale-110 transition-all text-base">
+                    🤍
+                  </button>
+                </div>
+
+                {/* Product Info */}
+                <div className="p-3 flex flex-col flex-1 bg-gradient-to-b from-white to-gray-50">
+                  {/* Category */}
+                  <p className="text-xs text-blue-600 font-bold tracking-wider mb-1 uppercase line-clamp-1">
+                    {p.category || "Product"}
+                  </p>
+
+                  {/* Product Name */}
+                  <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2 h-9">
+                    {p.name}
+                  </h3>
+
+                  {/* Price */}
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <p className="text-lg font-black text-blue-600">
                       {formatCurrency(p.price)}
                     </p>
                   </div>
-                  <div className="text-right">
-                    {getStatusBadge(p)}
-                  </div>
-                </div>
 
-                {/* Divider */}
-                <div className="h-px bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200"></div>
-
-                {/* Stock and Expiry Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
-                    <p className="text-xs text-gray-600 uppercase tracking-widest font-bold mb-2 opacity-75">📦 Stock</p>
-                    <p className="text-2xl font-black text-gray-900">{p.quantity}</p>
-                    <div className="text-xs mt-2">
-                      {getStockStatus(p.quantity)}
+                  {/* Rating and Stock Info */}
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <div className="flex items-center gap-1">
+                      <span>⭐</span>
+                      <span className="text-gray-700 font-semibold text-xs">4.5</span>
                     </div>
+                    <span className="text-gray-600 font-semibold text-xs">Qty: {p.quantity}</span>
                   </div>
 
-                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-100">
-                    <p className="text-xs text-gray-600 uppercase tracking-widest font-bold mb-2 opacity-75">📅 Expiry</p>
-                    {p.expiry ? (
-                      <>
-                        <p className="text-2xl font-black text-gray-900">
-                          {new Date(p.expiry).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(p.expiry).toLocaleDateString(undefined, { year: '2-digit' })}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-400 font-semibold">No expiry</p>
-                    )}
+                  {/* Expiry info if available */}
+                  {p.expiry && (
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-1 font-medium">
+                      📅 {new Date(p.expiry).toLocaleDateString()}
+                    </p>
+                  )}
+
+                  {/* Spacer */}
+                  <div className="flex-1"></div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-1.5 pt-2">
+                    <button
+                      onClick={() => onEdit(p)}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-1.5 px-2 rounded-lg font-bold text-xs transition duration-200 shadow-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => onDelete(p.id)}
+                      className="flex-1 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-600 hover:text-red-700 py-1.5 px-2 rounded-lg font-bold text-xs transition duration-200"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-
-                {/* SKU if available */}
-                {p.sku && (
-                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wide mb-1">🏷️ SKU</p>
-                    <p className="text-sm font-mono font-bold text-gray-800">{p.sku}</p>
-                  </div>
-                )}
               </div>
-
-              {/* Card Footer - Enhanced */}
-              <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-100">
-                <button
-                  onClick={() => onEdit(p)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group/btn"
-                >
-                  <span className="text-lg group-hover/btn:scale-125 transition-transform duration-300">✎</span>
-                  <span>Edit Product</span>
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

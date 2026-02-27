@@ -1,9 +1,4 @@
-import { useState } from "react";
-
 export default function DashboardCards({ products }) {
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [uploadPreview, setUploadPreview] = useState(null);
-
   const totalProducts = products.length;
   const totalValue = products.reduce((sum, p) => sum + (p.price * p.quantity || 0), 0);
   const lowStock = products.filter((p) => p.quantity < 5).length;
@@ -24,18 +19,6 @@ export default function DashboardCards({ products }) {
   const totalSalesValue = products.reduce((sum, p) => sum + (p.price * (p.quantity || 0)), 0);
   const averageProductPrice = totalProducts > 0 ? (totalSalesValue / totalProducts).toFixed(2) : 0;
   const highValueProducts = products.filter((p) => p.price > 1000).length;
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadPreview(reader.result);
-        setUploadedImage(file.name);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const cards = [
     {
@@ -101,56 +84,6 @@ export default function DashboardCards({ products }) {
 
   return (
     <div>
-      {/* Image Upload Section */}
-      <div className="mb-8">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">📸 Upload Marketing Image</h2>
-          <div className="flex gap-6 items-start">
-            {/* Upload Input */}
-            <div className="flex-1">
-              <label className="block mb-2 text-sm font-semibold text-gray-700">
-                Select Image
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-500 focus:outline-none bg-blue-50 transition"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Supported formats: JPG, PNG, GIF. Max size: 5MB
-              </p>
-              {uploadedImage && (
-                <p className="text-sm text-green-600 mt-2 font-semibold">
-                  ✓ File uploaded: {uploadedImage}
-                </p>
-              )}
-            </div>
-
-            {/* Image Preview */}
-            <div className="flex-1">
-              {uploadPreview ? (
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Preview</p>
-                  <img
-                    src={uploadPreview}
-                    alt="Upload preview"
-                    className="w-full h-40 object-cover rounded-lg shadow"
-                  />
-                </div>
-              ) : (
-                <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-center">
-                  <div>
-                    <p className="text-4xl mb-2">🖼️</p>
-                    <p className="text-sm">Image preview will appear here</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Inventory Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
         {cards.map((card, idx) => (
