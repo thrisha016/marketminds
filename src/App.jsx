@@ -13,6 +13,7 @@ import Help from "./components/Help";
 import AboutUs from "./components/AboutUs";
 import Contact from "./components/Contact";
 import { ensureDemoDataSeeded } from "./utils/seedDemoData";
+import { productsAPI } from "./utils/api";
 
 function App() {
   const navigate = useNavigate();
@@ -31,30 +32,51 @@ function App() {
     }
   });
 
-  // Seed demo data and load products (simulated API-like startup)
+  // Load products from API or demo data
   useEffect(() => {
     let mounted = true;
 
-    const bootstrapData = async () => {
+    const loadProducts = async () => {
       try {
-        await ensureDemoDataSeeded();
-        const saved = localStorage.getItem("marketmind-products");
-        if (saved && mounted) {
-          setProducts(JSON.parse(saved));
+        if (user) {
+          // User is logged in, fetch from API
+          const data = await productsAPI.getProducts();
+          if (mounted) {
+            setProducts(data.data || []);
+          }
+        } else {
+          // No user, use demo data
+          await ensureDemoDataSeeded();
+          const saved = localStorage.getItem("marketmind-products");
+          if (saved && mounted) {
+            setProducts(JSON.parse(saved));
+          }
         }
       } catch (error) {
         console.error("Error loading products:", error);
+        // Fallback to demo data
+        if (!user) {
+          try {
+            await ensureDemoDataSeeded();
+            const saved = localStorage.getItem("marketmind-products");
+            if (saved && mounted) {
+              setProducts(JSON.parse(saved));
+            }
+          } catch (fallbackError) {
+            console.error("Fallback error:", fallbackError);
+          }
+        }
       } finally {
         if (mounted) setLoadingData(false);
       }
     };
 
-    bootstrapData();
+    loadProducts();
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user]);
 
   // Save products
   useEffect(() => {
@@ -62,21 +84,50 @@ function App() {
   }, [products]);
 
   // Add / Update
-  const handleAddProduct = (product) => {
-    if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? product : p))
-      );
+  const handleAddProduct = async (product) => {
+    try {
+      if (user) {
+        // Use API
+        if (editingProduct) {
+          await productsAPI.updateProduct(editingProduct._id || editingProduct.id, product);
+          setProducts((prev) =>
+            prev.map((p) => (p._id === editingProduct._id || p.id === editingProduct.id ? { ...product, _id: editingProduct._id || editingProduct.id } : p))
+          );
+        } else {
+          const data = await productsAPI.createProduct(product);
+          setProducts((prev) => [...prev, data.data]);
+        }
+      } else {
+        // Use localStorage
+        if (editingProduct) {
+          setProducts((prev) =>
+            prev.map((p) => (p.id === product.id ? product : p))
+          );
+        } else {
+          setProducts((prev) => [...prev, { ...product, id: Date.now() }]);
+        }
+      }
       setEditingProduct(null);
-    } else {
-      setProducts((prev) => [...prev, { ...product, id: Date.now() }]);
+      navigate("/");
+    } catch (error) {
+      console.error("Error saving product:", error);
+      throw error;
     }
-    navigate("/");
   };
 
   // Delete
-  const handleDeleteProduct = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const handleDeleteProduct = async (id) => {
+    try {
+      if (user) {
+        await productsAPI.deleteProduct(id);
+        setProducts((prev) => prev.filter((p) => p._id !== id && p.id !== id));
+      } else {
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      throw error;
+    }
   };
 
   // Edit

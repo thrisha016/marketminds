@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { authAPI } from "../utils/api";
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -35,19 +36,30 @@ export default function Login({ onLogin }) {
 
     setLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const data = await authAPI.login({ email, password });
 
-    const user = {
-      email,
-      name: email.split("@")[0],
-      role: selectedPortal === "admin" ? "Administrator" : "Owner",
-      portal: selectedPortal,
-    };
-
-    localStorage.setItem("marketmind-user", JSON.stringify(user));
-    onLogin(user);
-    setLoading(false);
+      // Store token and user data
+      localStorage.setItem('marketmind-token', data.token);
+      localStorage.setItem('marketmind-user', JSON.stringify({
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        role: selectedPortal === 'admin' ? 'Administrator' : 'Owner',
+        portal: selectedPortal,
+      }));
+      onLogin({
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        role: selectedPortal === 'admin' ? 'Administrator' : 'Owner',
+        portal: selectedPortal,
+      });
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDemoLogin = () => {
